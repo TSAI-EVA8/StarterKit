@@ -215,7 +215,7 @@ class GradCAMView:
         self._gradcam()
         self._gradcam_pp()
 
-        print('Mode set to GradCAM.')
+        #print('Mode set to GradCAM.')
         self.grad = self.gradcam.copy()
 
         self.views = []
@@ -267,27 +267,27 @@ class GradCAMView:
             'result': result
         }
     
-    def _plot_view(self, view, fig, row_num, ncols, metric):
-        """Plot a CAM view.
+    # def _plot_view(self, view, fig, row_num, ncols, metric):
+    #     """Plot a CAM view.
 
-        Args:
-            view: Dictionary containing image, heatmap and result.
-            fig: Matplotlib figure instance.
-            row_num: Row number of the subplot.
-            ncols: Total number of columns in the subplot.
-            metric: Can be one of ['heatmap', 'result'].
-        """
-        sub = fig.add_subplot(row_num, ncols, 1)
-        sub.axis('off')
-        plt.imshow(view['image'])
-        label=str(view['label'])
-        prediction=str(view['prediction'])
-        sub.set_title(f'Label: {label}\nPrediction: {prediction}')
-        for idx, layer in enumerate(self.layers):
-            sub = fig.add_subplot(row_num, ncols, idx + 2)
-            sub.axis('off')
-            plt.imshow(view[metric][layer])
-            sub.set_title(layer)
+    #     Args:
+    #         view: Dictionary containing image, heatmap and result.
+    #         fig: Matplotlib figure instance.
+    #         row_num: Row number of the subplot.
+    #         ncols: Total number of columns in the subplot.
+    #         metric: Can be one of ['heatmap', 'result'].
+    #     """
+    #     sub = fig.add_subplot(row_num, ncols, 1)
+    #     sub.axis('off')
+    #     plt.imshow(view['image'])
+    #     label=str(view['label'])
+    #     prediction=str(view['prediction'])
+    #     sub.set_title(f'Label: {label}\nPrediction: {prediction}')
+    #     for idx, layer in enumerate(self.layers):
+    #         sub = fig.add_subplot(row_num, ncols, idx + 2)
+    #         sub.axis('off')
+    #         plt.imshow(view[metric][layer])
+    #         sub.set_title(layer)
     
     def cam(self, norm_image_list):
         """Get CAM for a list of images.
@@ -299,31 +299,57 @@ class GradCAMView:
         for norm_image in norm_image_list:
             self.views.append(self._cam_image(norm_image))
     
-    def plot(self, plot_path):
-        """Plot heatmap and CAM result.
+    # def plot(self, plot_path):
+    #     """Plot heatmap and CAM result.
 
-        Args:
-            plot_path: Path to save the plot.
-        """
+    #     Args:
+    #         plot_path: Path to save the plot.
+    #     """
 
-        for idx, view in enumerate(self.views):
-            # Initialize plot
-            fig = plt.figure(figsize=(10, 10))
+    #     for idx, view in enumerate(self.views):
+    #         # Initialize plot
+    #         fig = plt.figure(figsize=(10, 10))
 
-            # Plot view
-            #self._plot_view(view, fig, 1, len(self.layers) + 1, 'heatmap')
-            self._plot_view(view, fig, 2, len(self.layers) + 1, 'result')
+    #         # Plot view
+    #         #self._plot_view(view, fig, 1, len(self.layers) + 1, 'heatmap')
+    #         self._plot_view(view, fig, 2, len(self.layers) + 1, 'result')
             
-            # Set spacing and display
-            fig.tight_layout()
-            plt.show()
+    #         # Set spacing and display
+    #         fig.tight_layout()
+    #         plt.show()
 
-            # Save image
-            fig.savefig(f'{plot_path}_{idx + 1}.png', bbox_inches='tight')
+    #         # Save image
+    #         fig.savefig(f'{plot_path}_{idx + 1}.png', bbox_inches='tight')
 
-            # Clear cache
-            plt.clf()
+    #         # Clear cache
+    #         plt.clf()
     
+    def plot(self):
+        fig, axs = plt.subplots(len(self.views), 5,figsize=(32,32))
+        row_count=-1
+        #plt.rcParams['figure.figsize'] = [10, 10]
+        for idx, view in enumerate(self.views):
+            label = view['label']
+            prediction = view['prediction']
+            row_count += 1
+            axs[row_count][0].imshow(view['image']/2)
+            axs[row_count][0].set_title(f'Label: {label}\nPrediction: {prediction}')
+            axs[row_count][0].title.set_size(20)
+            axs[row_count][0].axis('off')
+            for j in range(1,5):
+                layer="layer"+str(j)
+                axs[row_count][j].imshow(view['result'][layer])
+                axs[row_count][j].set_title(layer)
+                axs[row_count][j].title.set_size(20)
+                axs[row_count][j].axis('off')
+            #plt.subplots_adjust(left=0.125, bottom=0.1, right=0.9, top=None, wspace=None, hspace=None)
+
+            
+        # Set spacing and display
+        fig.tight_layout(pad=0.5)
+        plt.show()
+        plt.clf()
+   
     def __call__(self, norm_image_list, plot_path):
         """Get GradCAM for a list of images.
 
@@ -332,4 +358,4 @@ class GradCAMView:
                 should be of type torch.Tensor
         """
         self.cam(norm_image_list)
-        self.plot(plot_path)
+        self.plot()

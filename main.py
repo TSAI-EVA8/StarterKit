@@ -12,7 +12,7 @@ from torchsummary import summary
 
 
 def eval(model, loader, device, criterion, losses, accuracies, correct_samples, incorrect_samples, sample_count=25, last_epoch=False):
-    """Train the model.
+    """Test the model.
     Args:
         model: Model instance.
         loader: Validation data loader.
