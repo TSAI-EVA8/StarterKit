@@ -164,15 +164,125 @@ def displayImageGridFromLoader(loader):
 
     # show images..
     ## get the grid of the image
-    imageGrid=torchvision.utils.make_grid(images)
+    # imageGrid=torchvision.utils.make_grid(images[0:25])
     
-    ## logic to unnormalize
-    imageGrid = imageGrid / 2 + 0.5     # unnormalize
-    npimg = imageGrid.numpy()
+    # ## logic to unnormalize
+    # imageGrid = imageGrid / 2 + 0.5     # unnormalize
+    # npimg = imageGrid.numpy()
     
-    ## ste the figure size
-    plt.subplots(figsize=(10, 10))
-    plt.axis('off')
-    ## plot the grid
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    # ## ste the figure size
+    # plt.subplots(figsize=(10, 10))
+    # plt.axis('off')
+    # ## plot the grid
+    # plt.imshow(np.transpose(npimg, (1, 2, 0)))
     
+    row_count = -1
+    fig, axs = plt.subplots(5, 5, figsize=(10, 10))
+    fig.tight_layout()
+    for idx in range(25):
+        # #print(labels[idx])
+        #     # If 25 samples have been stored, break out of loop
+        # if idx > 24:
+        #     break
+        
+        rgb_image = np.transpose(images[idx], (1, 2, 0)) / 2 + 0.5
+        label = labels[idx]
+        #prediction = result['prediction'].item()
+
+        # Plot image
+        if idx % 5 == 0:
+            row_count += 1
+        axs[row_count][idx % 5].axis('off')
+        #axs[row_count][idx % 5].set_title(f'Label: {classes[label]}')
+        axs[row_count][idx % 5].imshow(rgb_image)
+
+
+def plot_metric(data, metric):
+    """Plot accuracy graph or loss graph.
+    Args:
+        data (list or dict): If only single plot then this is a list, else
+            for multiple plots this is a dict with keys containing.
+            the plot name and values being a list of points to plot
+        metric (str): Metric name which is to be plotted. Can be either
+            loss or accuracy.
+    """
+
+    single_plot = True
+    if type(data) == dict:
+        single_plot = False
+    
+    # Initialize a figure
+    fig = plt.figure(figsize=(7, 5))
+
+    # Plot data
+    if single_plot:
+        plt.plot(data)
+    else:
+        plots = []
+        for value in data.values():
+            plots.append(plt.plot(value)[0])
+
+    # Set plot title
+    plt.title(f'{metric} Change')
+
+    # Label axes
+    plt.xlabel('Epoch')
+    plt.ylabel(metric)
+
+    if not single_plot: # Set legend
+        location = 'upper' if metric == 'Loss' else 'lower'
+        plt.legend(
+            tuple(plots), tuple(data.keys()),
+            loc=f'{location} right',
+            shadow=True,
+            prop={'size': 15}
+        )
+
+    # Save plot
+    fig.savefig(f'{metric.lower()}_change.png')
+
+
+
+
+class CutOut(object):
+    """Randomly mask out one or more patches from an image.
+
+    Args:
+        n_holes (int): Number of patches to cut out of each image.
+        length (int): The length (in pixels) of each square patch.
+    """
+    def __init__(self, n_holes, length,p):
+        self.n_holes = n_holes
+        self.length = length
+        self.p=p
+
+    def __call__(self, img):
+        """
+        Args:
+            img (Tensor): Tensor image of size (C, H, W).
+        Returns:
+            Tensor: Image with n_holes of dimension length x length cut out of it.
+        """
+        if torch.rand(1) > self.p:
+            return img
+        h = img.size(1)
+        w = img.size(2)
+
+        mask = np.ones((h, w), np.float32)
+
+        for n in range(self.n_holes):
+            y = np.random.randint(h)
+            x = np.random.randint(w)
+
+            y1 = np.clip(y - self.length // 2, 0, h)
+            y2 = np.clip(y + self.length // 2, 0, h)
+            x1 = np.clip(x - self.length // 2, 0, w)
+            x2 = np.clip(x + self.length // 2, 0, w)
+
+            mask[y1: y2, x1: x2] = 0.
+
+        mask = torch.from_numpy(mask)
+        mask = mask.expand_as(img)
+        img = img * mask
+
+        return img

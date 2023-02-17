@@ -92,8 +92,8 @@ def train(model, loader, device, optimizer, losses,accuracies,criterion, l1_fact
         y_pred = model(data)
 
         # Calculate loss
-        loss = l1(model, criterion(y_pred, target), l1_factor)
-
+        #loss = l1(model, criterion(y_pred, target), l1_factor)
+        loss = F.nll_loss(y_pred, target)
         # Perform backpropagation
         loss.backward()
         optimizer.step()
