@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 ## we are creating our own residual block..this will generate a layer or layer with a residual connection
 class UltimusBlock(nn.Module):
-    def __init__(self):
+    def __init__(self,device):
         super(UltimusBlock, self).__init__()
         
         self.fc_k=nn.Linear(48,8)
@@ -36,10 +36,10 @@ class UltimusBlock(nn.Module):
 
 class UltimusModel(nn.Module):
 
-    def __init__(self):
+    def __init__(self,device):
         """ This function instantiates all the model layers """
 
-        super(Net, self).__init__()
+        super(UltimusModel, self).__init__()
     
         self.convblock1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, padding=1),  # Input: 32x32x3 | Output: 32x32x32 | RF: 3x3
@@ -59,19 +59,19 @@ class UltimusModel(nn.Module):
         ) 
 
         self.ultimusLayer1=nn.Sequential(
-            UltimusBlock()
+            UltimusBlock(device)
         )
         
         self.ultimusLayer2=nn.Sequential(
-            UltimusBlock()
+            UltimusBlock(device)
         )
         
         self.ultimusLayer3=nn.Sequential(
-            UltimusBlock()
+            UltimusBlock(device)
         )
         
         self.ultimusLayer4=nn.Sequential(
-            UltimusBlock()
+            UltimusBlock(device)
         )
         
          # Input: 4x4x64 | Output: 1x1x64 | RF: 108x108
