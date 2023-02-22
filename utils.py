@@ -126,8 +126,8 @@ def save_and_show_result(data, classes):
         ## range of 0-1
        #rgb_image = np.transpose(result['image'], (1, 2, 0)) / 2 + 0.5
        
-        image = np.transpose(result['image'], (1, 2, 0))
-        image = image * STD + MEAN
+        rgb_image = np.transpose(result['image'], (1, 2, 0))
+        rgb_image = rgb_image * STD + MEAN
         
         label = result['label'].item()
         prediction = result['prediction'].item()
