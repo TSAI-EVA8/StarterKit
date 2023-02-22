@@ -36,7 +36,7 @@ def initialize_cuda(seed):
 
 
 
-def plot_metric(values, metric):
+def plot_metric_for_individual_curve(values, metric):
     '''Plot the individual metric curves'''
     # Initialize a figure
     fig = plt.figure(figsize=(7, 5))
@@ -106,12 +106,9 @@ def save_and_show_result(data, classes):
         data: Contains model predictions and labels.
     """
 
-    # # Create directories for saving data
-    # path = os.path.join(
-    #     os.path.dirname(os.path.abspath(__file__)), 'predictions'
-    # )
-    # if not os.path.exists(path):
-    #     os.makedirs(path)
+    ## I think this is valid for the CFAR-10 data ..we may add a iff condition and pass the dataset
+    MEAN = torch.tensor([0.49139968, 0.48215841, 0.44653091])
+    STD = torch.tensor([0.24703223, 0.24348513, 0.26158784])
 
     # Initialize plot
     row_count = -1
@@ -124,7 +121,14 @@ def save_and_show_result(data, classes):
         if idx > 24:
             break
         
-        rgb_image = np.transpose(result['image'], (1, 2, 0)) / 2 + 0.5
+        ##Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
+        ## just doing this will give the clipping error. baiscaly this is not sufficinet for all the values to be withing the 
+        ## range of 0-1
+       #rgb_image = np.transpose(result['image'], (1, 2, 0)) / 2 + 0.5
+       
+        image = np.transpose(result['image'], (1, 2, 0))
+        image = image * STD + MEAN
+        
         label = result['label'].item()
         prediction = result['prediction'].item()
 
@@ -137,6 +141,9 @@ def save_and_show_result(data, classes):
     
 def displaySamples(images,labels,classes):
     # functions to show an image
+    MEAN = torch.tensor([0.49139968, 0.48215841, 0.44653091])
+    STD = torch.tensor([0.24703223, 0.24348513, 0.26158784])
+
     row_count = -1
     fig, axs = plt.subplots(5, 5, figsize=(10, 10))
     fig.tight_layout()
@@ -146,7 +153,10 @@ def displaySamples(images,labels,classes):
         # if idx > 24:
         #     break
         
-        rgb_image = np.transpose(images[idx], (1, 2, 0)) / 2 + 0.5
+        #rgb_image = np.transpose(images[idx], (1, 2, 0)) / 2 + 0.5
+        rgb_image = np.transpose(images[idx], (1, 2, 0))
+        rgb_image = rgb_image * STD + MEAN
+        
         label = labels[idx]
         #prediction = result['prediction'].item()
 
@@ -159,23 +169,12 @@ def displaySamples(images,labels,classes):
 
 
 def displayImageGridFromLoader(loader):
+    MEAN = torch.tensor([0.49139968, 0.48215841, 0.44653091])
+    STD = torch.tensor([0.24703223, 0.24348513, 0.26158784])
+
     dataiter = iter(loader)
     images, labels = next(dataiter)
 
-    # show images..
-    ## get the grid of the image
-    # imageGrid=torchvision.utils.make_grid(images[0:25])
-    
-    # ## logic to unnormalize
-    # imageGrid = imageGrid / 2 + 0.5     # unnormalize
-    # npimg = imageGrid.numpy()
-    
-    # ## ste the figure size
-    # plt.subplots(figsize=(10, 10))
-    # plt.axis('off')
-    # ## plot the grid
-    # plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    
     row_count = -1
     fig, axs = plt.subplots(5, 5, figsize=(10, 10))
     fig.tight_layout()
@@ -185,7 +184,10 @@ def displayImageGridFromLoader(loader):
         # if idx > 24:
         #     break
         
-        rgb_image = np.transpose(images[idx], (1, 2, 0)) / 2 + 0.5
+        #rgb_image = np.transpose(images[idx], (1, 2, 0)) / 2 + 0.5
+        rgb_image = np.transpose(images[idx], (1, 2, 0))
+        rgb_image = rgb_image * STD + MEAN
+        
         label = labels[idx]
         #prediction = result['prediction'].item()
 
@@ -243,46 +245,3 @@ def plot_metric(data, metric):
 
 
 
-
-class CutOut(object):
-    """Randomly mask out one or more patches from an image.
-
-    Args:
-        n_holes (int): Number of patches to cut out of each image.
-        length (int): The length (in pixels) of each square patch.
-    """
-    def __init__(self, n_holes, length,p):
-        self.n_holes = n_holes
-        self.length = length
-        self.p=p
-
-    def __call__(self, img):
-        """
-        Args:
-            img (Tensor): Tensor image of size (C, H, W).
-        Returns:
-            Tensor: Image with n_holes of dimension length x length cut out of it.
-        """
-        if torch.rand(1) > self.p:
-            return img
-        h = img.size(1)
-        w = img.size(2)
-
-        mask = np.ones((h, w), np.float32)
-
-        for n in range(self.n_holes):
-            y = np.random.randint(h)
-            x = np.random.randint(w)
-
-            y1 = np.clip(y - self.length // 2, 0, h)
-            y2 = np.clip(y + self.length // 2, 0, h)
-            x1 = np.clip(x - self.length // 2, 0, w)
-            x2 = np.clip(x + self.length // 2, 0, w)
-
-            mask[y1: y2, x1: x2] = 0.
-
-        mask = torch.from_numpy(mask)
-        mask = mask.expand_as(img)
-        img = img * mask
-
-        return img

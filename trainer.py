@@ -187,3 +187,40 @@ def fit_model(net, optimizer, criterion, device, NUM_EPOCHS,train_loader, test_l
         return net, (training_acc, training_loss, testing_acc, testing_loss, lr_trend)
     else:
         return net, (training_acc, training_loss, testing_acc, testing_loss)
+    
+
+def qualityCheck(model, loader, device,sample_count=25):
+    '''
+    The function will find out some of the correct predictions and incorrect predictions done by the model
+    '''
+    correct_samples = []
+    incorrect_samples = []
+    model.eval()
+    with torch.no_grad():
+        #for data, target in loader:
+        dataiter = iter(loader)
+        data, target = next(dataiter)
+
+
+        img_batch = data  # This is done to keep data in CPU
+        data, target = data.to(device), target.to(device)  # Get samples
+        output = model(data)  # Get trained model output
+        pred = output.argmax(dim=1, keepdim=True)  # Get the index of the max log-probability
+        result = pred.eq(target.view_as(pred))
+
+        # Save correct and incorrect samples
+        for i in range(len(list(result))):
+            if not list(result)[i] and len(incorrect_samples) < sample_count:
+                incorrect_samples.append({
+                    'prediction': list(pred)[i],
+                    'label': list(target.view_as(pred))[i],
+                    'image': img_batch[i]
+                })
+            elif list(result)[i] and len(correct_samples) < sample_count:
+                correct_samples.append({
+                    'prediction': list(pred)[i],
+                    'label': list(target.view_as(pred))[i],
+                    'image': img_batch[i]
+                })
+        return correct_samples,incorrect_samples
+       
