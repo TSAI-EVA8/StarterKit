@@ -8,8 +8,9 @@ import torch.optim as optim
 import torchvision
 from torchsummary import summary
 from torch_lr_finder import LRFinder
+import numpy as np
 
-
+'''
 
 def eval(model, loader, device, criterion, losses, accuracies, correct_samples, incorrect_samples, sample_count=25, last_epoch=False):
     """Test the model.
@@ -131,7 +132,7 @@ def l1(model, loss, Lambda):
             regularizer_loss += criteria(parameter, torch.zeros_like(parameter))
         loss += Lambda * regularizer_loss
     return loss
-
+'''
 
 def cross_entropy_loss():
     """Create Cross Entropy Loss
