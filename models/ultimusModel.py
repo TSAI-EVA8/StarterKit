@@ -3,7 +3,6 @@ import torch.nn.functional as F
 import torch.nn as nn
 import torch.nn.functional as F
 
-## we are creating our own residual block..this will generate a layer or layer with a residual connection
 class UltimusBlock(nn.Module):
     def __init__(self,device):
         super(UltimusBlock, self).__init__()
