@@ -168,7 +168,7 @@ def displaySamples(images,labels,classes):
         axs[row_count][idx % 5].imshow(rgb_image)
 
 
-def displayImageGridFromLoader(loader):
+def displayImageGridFromLoader(loader,classes=None):
     MEAN = torch.tensor([0.49139968, 0.48215841, 0.44653091])
     STD = torch.tensor([0.24703223, 0.24348513, 0.26158784])
 
@@ -195,7 +195,8 @@ def displayImageGridFromLoader(loader):
         if idx % 5 == 0:
             row_count += 1
         axs[row_count][idx % 5].axis('off')
-        #axs[row_count][idx % 5].set_title(f'Label: {classes[label]}')
+        if(classes is not None):
+            axs[row_count][idx % 5].set_title(f'Label: {classes[label]}')
         axs[row_count][idx % 5].imshow(rgb_image)
 
 
